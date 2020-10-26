@@ -1,0 +1,6 @@
+src/test_hmm.c
+src/traintest
+train
+test
+model_0*.txt
+*~

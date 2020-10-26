@@ -6,6 +6,14 @@
 #include <string.h>
 #include <math.h>
 
+#ifndef MAX_FILENAMELEN
+#	define MAX_FILENAMELEN    32
+#endif
+
+#ifndef MAX_DATA
+#   define MAX_DATA     10000
+#endif
+
 #ifndef MAX_STATE
 #	define MAX_STATE    10
 #endif
@@ -35,7 +43,7 @@ static FILE *open_or_die( const char *filename, const char *ht )
 {
     FILE *fp = fopen( filename, ht );
     if( fp == NULL ){
-        perror( filename);
+        perror(filename);
         exit(1);
     }
 
@@ -47,7 +55,7 @@ static void loadHMM( HMM *hmm, const char *filename )
     int i, j, n;
     FILE *fp = open_or_die( filename, "r");
 
-    hmm->model_name = (char *)malloc( sizeof(char) * (strlen( filename)+1));
+    hmm->model_name = (char *)malloc( sizeof(char) * (strlen(filename)+1));
     strcpy( hmm->model_name, filename );
 
     char token[MAX_LINE] = "";
