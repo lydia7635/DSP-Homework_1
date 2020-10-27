@@ -11,7 +11,12 @@ typedef struct{
 
 SAMPLE sample;
 
-void readArg(int argc, char **argv, int *iteration, char *initModelFile, char *seqDataFile, char *resultModelFile)
+double alp[MAX_SEQ][MAX_STATE];				// alpha[t][i]
+double bet[MAX_SEQ][MAX_STATE];				// beta[t][i]
+double gam[MAX_DATA][MAX_SEQ][MAX_STATE];				// gamma[t][i]
+double eps[MAX_DATA][MAX_SEQ][MAX_STATE][MAX_STATE];	// epsilon[t][i][j]
+
+void readArg(int argc, char *argv[], int *iteration, char *initModelFile, char *seqDataFile, char *resultModelFile)
 {
 	if(argc < 5){
 		fprintf(stderr, "too few argument.\n");
@@ -24,21 +29,21 @@ void readArg(int argc, char **argv, int *iteration, char *initModelFile, char *s
 	return;
 }
 
-void initAlpha(double alp[MAX_SEQ][MAX_STATE], HMM *hmm, char observe)
+void initAlpha(HMM *hmm, int observe)
 {	
-	int observeN = (int)(observe - 'A');
 	int stateNum = hmm->state_num;
 	double *pi = hmm->initial;
 
-	for(int i = 0; i < stateNum; ++i)
-		alp[0][i] = pi[i] * hmm->observation[observeN][i];
+	for(int i = 0; i < stateNum; ++i) {
+		alp[0][i] = pi[i] * hmm->observation[observe][i];
+	}
 	return;
 }
 
-void initBeta(double bet[MAX_SEQ][MAX_STATE], int time)
+void initBeta(int time)
 {
 	--time;
-	for(int i = 0; i < MAX_STATE; i++)
+	for(int i = 0; i < MAX_STATE; ++i)
 		bet[time][i] = 1;
 	return;
 }
@@ -56,6 +61,7 @@ void loadSample(const char *filename)
 		for(int i = 0; i < seqLen; ++i) {
 			sample.seq[curLine][i] = seqString[i] - 'A';
 		}
+		sample.time[curLine] = seqLen;
 		++curLine;
 	}
 	sample.line = curLine;
@@ -76,22 +82,17 @@ int main(int argc, char *argv[])
 
 	HMM hmm;
 
-	double alp[MAX_SEQ][MAX_STATE];				// alpha[t][i]
-	double bet[MAX_SEQ][MAX_STATE];				// beta[t][i]
-	double gam[MAX_DATA][MAX_SEQ][MAX_STATE];				// gamma[t][i]
-	double eps[MAX_DATA][MAX_SEQ][MAX_STATE][MAX_STATE];	// epsilon[t][i][j]
+	
 	
 	loadHMM(&hmm, initModelFile);
 	loadSample(seqDataFile);
 	int stateNum = hmm.state_num;
 	int observNum = hmm.observ_num;
 
-	fprintf(stderr, "before loop\n");
-
-	/*for(int curIter = 0; curIter < iteration; ++curIter) {
+	for(int curIter = 0; curIter < iteration; ++curIter) {
 		for(int curLine = 0; curLine < sample.line; ++curLine) {
-			initAlpha(alp, &hmm, sample.seq[curLine][0]);
-			initBeta(bet, sample.time[curLine]);
+			initAlpha(&hmm, sample.seq[curLine][0]);
+			initBeta(sample.time[curLine]);
 
 			// alpha induction
 			for(int i = 1; i < sample.time[curLine]; ++i) {			// time
@@ -102,15 +103,17 @@ int main(int argc, char *argv[])
 					alp[i][j] = alpha_a * hmm.observation[ sample.seq[curLine][i] ][j];
 				}
 			}
+			
 
 			// beta induction
 			for(int i = sample.time[curLine] - 2; i >= 0; --i) {	// time
 				for(int j = 0; j < stateNum; ++j) {					// i
 					double a_b_beta = 0;
-					for(int k = 0; k < stateNum; ++k)				// j
+					for(int k = 0; k < stateNum; ++k) {				// j
 						a_b_beta += hmm.transition[j][k]
 									* hmm.observation[ sample.seq[curLine][i + 1] ][k]
 									* bet[i + 1][k];
+					}
 					bet[i][j] = a_b_beta;
 				}
 			}
@@ -143,13 +146,15 @@ int main(int argc, char *argv[])
 						eps[curLine][i][j][k] /= total;
 			}
 
-		}
 
+		}
 		// update pi
 		for(int i = 0; i < stateNum; ++i) {					// i
 			double total_gam_1 = 0;
-			for(int j = 0; j < sample.line; ++j)			// n
-				total_gam_1 += gam[j][0][i];
+			for(int j = 0; j < sample.line; ++j){			// n
+				total_gam_1 += gam[j][0][i];			
+				//fprintf(stderr, ".");
+			}
 			hmm.initial[i] = total_gam_1 / sample.line;
 		}
 
@@ -174,7 +179,6 @@ int main(int argc, char *argv[])
 				// for all time == t => sample.time[k] - 1
 				total_gam += gam[k][sample.time[k] - 1][i];
 			}
-
 			double total_gam_o[observNum];
 			for(int j = 0; j < observNum; ++j)
 				total_gam_o[j] = 0;
@@ -190,5 +194,5 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	dumpHMM(stderr, &hmm);*/
+	dumpHMM(resultModelFp, &hmm);
 }
