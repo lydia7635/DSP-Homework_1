@@ -14,6 +14,10 @@
 #   define MAX_DATA     10000
 #endif
 
+#ifndef MAX_MODEL
+#   define MAX_MODEL     10
+#endif
+
 #ifndef MAX_STATE
 #	define MAX_STATE    10
 #endif
@@ -135,6 +139,7 @@ static void dump_models( HMM *hmm, const int num )
     int i = 0;
     for( ; i < num ; i++ ){
         //		FILE *fp = open_or_die( hmm[i].model_name, "w" );
+        fprintf(stderr, "\n>> %s\n\n", hmm[i].model_name);
         dumpHMM( stderr, &hmm[i] );
     }
 }

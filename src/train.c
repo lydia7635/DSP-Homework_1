@@ -11,8 +11,8 @@ typedef struct{
 
 SAMPLE sample;
 
-double alp[MAX_SEQ][MAX_STATE];				// alpha[t][i]
-double bet[MAX_SEQ][MAX_STATE];				// beta[t][i]
+double alp[MAX_SEQ][MAX_STATE];							// alpha[t][i]
+double bet[MAX_SEQ][MAX_STATE];							// beta[t][i]
 double gam[MAX_DATA][MAX_SEQ][MAX_STATE];				// gamma[t][i]
 double eps[MAX_DATA][MAX_SEQ][MAX_STATE][MAX_STATE];	// epsilon[t][i][j]
 
@@ -81,8 +81,6 @@ int main(int argc, char *argv[])
 	FILE *resultModelFp = open_or_die(resultModelFile, "w");
 
 	HMM hmm;
-
-	
 	
 	loadHMM(&hmm, initModelFile);
 	loadSample(seqDataFile);
@@ -103,7 +101,6 @@ int main(int argc, char *argv[])
 					alp[i][j] = alpha_a * hmm.observation[ sample.seq[curLine][i] ][j];
 				}
 			}
-			
 
 			// beta induction
 			for(int i = sample.time[curLine] - 2; i >= 0; --i) {	// time
@@ -145,8 +142,6 @@ int main(int argc, char *argv[])
 					for(int k = 0; k < stateNum; ++k)
 						eps[curLine][i][j][k] /= total;
 			}
-
-
 		}
 		// update pi
 		for(int i = 0; i < stateNum; ++i) {					// i
