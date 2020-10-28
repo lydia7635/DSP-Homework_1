@@ -6,18 +6,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifndef MAX_FILENAMELEN
-#	define MAX_FILENAMELEN    32
-#endif
-
-#ifndef MAX_DATA
-#   define MAX_DATA     10000
-#endif
-
-#ifndef MAX_MODEL
-#   define MAX_MODEL     10
-#endif
-
 #ifndef MAX_STATE
 #	define MAX_STATE    10
 #endif

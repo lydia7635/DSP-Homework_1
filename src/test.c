@@ -2,36 +2,23 @@
 #include<string.h>
 #include<stdlib.h>
 #include"../inc/hmm.h"
+#include"../inc/header.h"
 
 #define model_num 5
-
-typedef struct{
-	int time[MAX_DATA];
-	int line;
-	int *seq[MAX_DATA];
-} SAMPLE;
 
 SAMPLE sample;
 HMM hmm[MAX_MODEL];
 double sigma[MAX_SEQ][MAX_STATE];			// sigma[time][state]
 
-void loadSample(const char *filename)
+void readArg(int argc, char *argv[], char *modelListFile, char *seqDataFile, char *resultFile)
 {
-	FILE *fp = open_or_die( filename, "r");
-
-	int curLine = 0;
-	char seqString[MAX_SEQ];
-	
-	while( fscanf(fp, "%s", seqString) > 0 ) {
-		int seqLen = strlen(seqString);
-		sample.seq[curLine] = (int *)malloc(sizeof(int) * seqLen);
-		for(int i = 0; i < seqLen; ++i) {
-			sample.seq[curLine][i] = seqString[i] - 'A';
-		}
-		sample.time[curLine] = seqLen;
-		++curLine;
+	if(argc < 4){
+		fprintf(stderr, "too few argument.\n");
+		exit(1);
 	}
-	sample.line = curLine;
+	strncpy(modelListFile, argv[1], MAX_FILENAMELEN);
+	strncpy(seqDataFile, argv[2], MAX_FILENAMELEN);
+	strncpy(resultFile, argv[3], MAX_FILENAMELEN);
 	return;
 }
 
@@ -65,18 +52,6 @@ double recurSigma(int curLine, int model, int stateNum)
 	return sigma_max;
 }
 
-void readArg(int argc, char *argv[], char *modelListFile, char *seqDataFile, char *resultFile)
-{
-	if(argc < 4){
-		fprintf(stderr, "too few argument.\n");
-		exit(1);
-	}
-	strncpy(modelListFile, argv[1], MAX_FILENAMELEN);
-	strncpy(seqDataFile, argv[2], MAX_FILENAMELEN);
-	strncpy(resultFile, argv[3], MAX_FILENAMELEN);
-	return;
-}
-
 /************************ main ************************/
 
 int main(int argc, char *argv[])
@@ -88,7 +63,7 @@ int main(int argc, char *argv[])
 	readArg(argc, argv, modelListFile, seqDataFile, resultFile);
 
 	load_models(modelListFile, hmm, model_num);
-	loadSample(seqDataFile);
+	loadSample(seqDataFile, &sample);
 	FILE *resultFp = open_or_die(resultFile, "w");
 
 	for(int i = 0; i < sample.line; ++i) {
